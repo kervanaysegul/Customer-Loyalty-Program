@@ -1,0 +1,186 @@
+// package.json
+{
+  "name": "stellar-loyalty-dapp",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "build-contract": "cd contract && cargo build --target wasm32-unknown-unknown --release",
+    "test-contract": "cd contract && cargo test",
+    "deploy-contract": "cd contract && soroban contract deploy --wasm target/wasm32-unknown-unknown/release/loyalty_program.wasm --network testnet"
+  },
+  "dependencies": {
+    "@stellar/freighter-api": "^1.7.1",
+    "@stellar/stellar-sdk": "^12.1.0",
+    "@tailwindcss/forms": "^0.5.7",
+    "@tailwindcss/typography": "^0.5.10",
+    "next": "14.0.4",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "typescript": "^5.3.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "@types/react": "^18.2.45",
+    "@types/react-dom": "^18.2.18",
+    "autoprefixer": "^10.4.16",
+    "eslint": "^8.56.0",
+    "eslint-config-next": "14.0.4",
+    "postcss": "^8.4.32",
+    "tailwindcss": "^3.4.0"
+  }
+}
+
+// next.config.js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  experimental: {
+    appDir: true,
+  },
+  webpack: (config) => {
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      fs: false,
+      net: false,
+      tls: false,
+    };
+    return config;
+  },
+}
+
+module.exports = nextConfig
+
+// tsconfig.json
+{
+  "compilerOptions": {
+    "target": "es5",
+    "lib": ["dom", "dom.iterable", "es6"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}
+
+// postcss.config.js
+module.exports = {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
+
+// .env.local (örnek)
+NEXT_PUBLIC_STELLAR_NETWORK=testnet
+NEXT_PUBLIC_CONTRACT_ADDRESS=YOUR_CONTRACT_ADDRESS_HERE
+NEXT_PUBLIC_SOROBAN_RPC_URL=https://soroban-testnet.stellar.org
+
+// README.md için ek bilgiler
+## Kurulum Adımları
+
+### 1. Gerekli Araçları Yükleyin
+```bash
+# Rust yükleyin
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+# Soroban CLI yükleyin
+cargo install --locked soroban-cli
+
+# WebAssembly target ekleyin
+rustup target add wasm32-unknown-unknown
+```
+
+### 2. Projeyi Klonlayın ve Bağımlılıkları Yükleyin
+```bash
+git clone <your-repo-url>
+cd stellar-loyalty-dapp
+npm install
+```
+
+### 3. Akıllı Sözleşmeyi Derleyin
+```bash
+cd contract
+cargo build --target wasm32-unknown-unknown --release
+```
+
+### 4. Sözleşmeyi Test Edin
+```bash
+cd contract
+cargo test
+```
+
+### 5. Sözleşmeyi Deploy Edin
+```bash
+# Testnet'e deploy
+soroban contract deploy \
+  --wasm target/wasm32-unknown-unknown/release/loyalty_program.wasm \
+  --network testnet \
+  --source YOUR_SECRET_KEY
+
+# Sözleşmeyi başlatın
+soroban contract invoke \
+  --id YOUR_CONTRACT_ID \
+  --source YOUR_SECRET_KEY \
+  --network testnet \
+  -- initialize \
+  --admin YOUR_PUBLIC_KEY \
+  --name "Loyalty Points" \
+  --symbol "LP" \
+  --earn_rate 10 \
+  --min_purchase 50
+```
+
+### 6. Frontend'i Başlatın
+```bash
+# .env.local dosyasına contract adresini ekleyin
+echo "NEXT_PUBLIC_CONTRACT_ADDRESS=YOUR_CONTRACT_ID" >> .env.local
+
+# Development server'ı başlatın
+npm run dev
+```
+
+## Kullanım Kılavuzu
+
+### Müşteri İşlemleri:
+1. **Cüzdan Bağlama**: Freighter cüzdanınızı web sitesine bağlayın
+2. **Puan Kazanma**: Alışveriş simülasyonu yaparak puan kazanın (her 10 TL için 1 puan)
+3. **Puan Kullanma**: Kazandığınız puanları ödüllerle değiştirin
+4. **Puan Transferi**: Arkadaşlarınıza puan gönderin
+
+### Admin İşlemleri:
+- Ödül oranlarını güncelleme
+- Kullanıcılara direkt puan verme
+- Sistem istatistiklerini görüntüleme
+
+## Sorun Giderme
+
+### Yaygın Hatalar:
+1. **Cüzdan Bağlantı Hatası**: Freighter eklentisinin yüklü olduğundan emin olun
+2. **İşlem Hatası**: Testnet XLM'nizin olduğundan emin olun
+3. **Contract Not Found**: .env.local dosyasındaki contract adresini kontrol edin
+
+### Log Kontrolü:
+```bash
+# Browser console'da hataları kontrol edin
+# Network sekmesinde API çağrılarını inceleyin
+```
